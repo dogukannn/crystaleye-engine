@@ -1,2 +1,4 @@
 /Build
 /Executables
+/CMakeFiles
+*.spv
