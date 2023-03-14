@@ -4,6 +4,7 @@ import logging
 import os
 
 shader_directory = "Shaders"
+sdl_path = "C:\projects\external\SDL2-2.26.2" 
 
 parser = argparse.ArgumentParser(description = "Generate project files for Crystal Eye Rendering Engine")
 
@@ -40,6 +41,8 @@ if __name__ == '__main__':
 
     compile_shaders()
 
+    logging.info("Deleting CMake cache")
+    subprocess.run(["del", "/s", "/q", ".\Build\CMakeCache.txt"], shell=True)
+   
     logging.info("Generating project files for Crystal Eye Engine")
-    subprocess.run(["cmake", "--fresh", "-S", ".", "-B", "Build"])
-
+    subprocess.run(["cmake", "--fresh", "-Dsdl2_DIR="+sdl_path, "-S", ".", "-B", "Build"])
