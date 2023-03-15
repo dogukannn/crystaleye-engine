@@ -1,6 +1,6 @@
 #include <iostream>
 #include "vulkan/vulkan.h"
-#include "CEEngine.h"
+#include "Include/CEEngine.h"
 
 int main(int argc, char* argv[])
 {
@@ -11,5 +11,5 @@ int main(int argc, char* argv[])
     config.WindowWidth = 1280;
     
     Renderer.Initialize(config);
-    
+    Renderer.Destroy(); 
 }
