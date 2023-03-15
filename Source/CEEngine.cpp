@@ -5,11 +5,6 @@
 #include <iostream>
 #include "VulkanExtensionFunctions.h"
 
-#define VK_CHECK(x) if(x != VK_SUCCESS) \
-	{									\
-		std::cout << "Vulkan command failed with " << x << std::endl; \
-		exit(0);						\
-	}									\
 
 		
 
@@ -110,7 +105,7 @@ namespace CrystalEye
     {
     	if (bEnableValidationLayers)
     	{
-    		//VkDestroyDebugUtilsMessengerExt(Instance, DebugMessenger, nullptr);
+    		VkDestroyDebugUtilsMessengerExt(Instance, DebugMessenger, nullptr);
     	}
 		 
     	vkDestroyInstance(Instance, nullptr);

@@ -5,7 +5,8 @@ add_executable(CrystalEyeEngine
 	Include/CEEngine.h
 	CEDevice.cpp
 	Include/CEDevice.h
-	VulkanExtensionFunctions.h)
+	VulkanExtensionFunctions.h
+	CEVulkanCommon.h)
 
 set_property(TARGET CrystalEyeEngine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:CrystalEyeEngine>")
 

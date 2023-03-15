@@ -1,25 +1,15 @@
+#pragma once
 
 //std
 #include <cstdint>
 #include <vector>
 
-#include "vulkan/vulkan.h"
-
 //CrystalEye
 #include "Include/CEDevice.h"
+#include "CEVulkanCommon.h"
 
 //forward declarations for those in namespaces
 struct SDL_Window;
-
-const std::vector<const char*> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"
-};
-
-#ifdef NDEBUG
-    const bool bEnableValidationLayers = false;
-#else
-    const bool bEnableValidationLayers = true;
-#endif
 
 namespace CrystalEye 
 {
