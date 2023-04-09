@@ -2,35 +2,32 @@
 
 #include <optional>
 #include "CEVulkanCommon.h"
+#include "CESwapchain.h"
 
+class SDL_Window;
 namespace CrystalEye 
 {
-   struct QueueFamilyIndices
-   {
-      std::optional<uint32_t> GraphicsFamily;
-
-      bool IsComplete()
-      {
-         return GraphicsFamily.has_value();
-      }
-   };
-   
    class CEDevice
    {
    public:
       CEDevice();
-      void Initialize(VkInstance Instance);
+      void Initialize(VkInstance instance, VkSurfaceKHR surface, SDL_Window* window);
+      void Destroy();
       
+      CESwapchain cSwapchain;
+
       bool bInitialized = false;
-      VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
-      VkDevice Device = VK_NULL_HANDLE;
-      VkInstance Instance = VK_NULL_HANDLE;
-      VkQueue GraphicsQueue;
-      
+      VkPhysicalDevice vPhysicalDevice = VK_NULL_HANDLE;
+      VkSurfaceKHR vSurface;
+      VkDevice vDevice = VK_NULL_HANDLE;
+      VkInstance vInstance = VK_NULL_HANDLE;
+      VkQueue vGraphicsQueue;
+      VkQueue vPresentQueue;
+      QueueFamilyIndices vQueueFamilyIndices;  
    private:
       VkPhysicalDevice GetSuitablePhysicalDevice(QueueFamilyIndices& outFamilyIndices);
       bool IsDeviceSuitable(VkPhysicalDevice physicalDevice, QueueFamilyIndices& outFamilyIndices);
       QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice physicalDevice);
-      
+      SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice physicalDevice);      
    };
 }

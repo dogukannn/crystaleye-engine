@@ -3,10 +3,11 @@
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <iostream>
-#include "VulkanExtensionFunctions.h"
+#include "Include/VulkanExtensionFunctions.h"
+#include <complex>
 
-
-		
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -47,7 +48,7 @@ namespace CrystalEye
     	
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "Example Application";
+		appInfo.pApplicationName = startConfig.ApplicationName;
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "CrystalEyeEngine";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -75,7 +76,8 @@ namespace CrystalEye
         {
 	        createInfo.enabledLayerCount = 0;
         }
-    	
+		
+    	Extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
         createInfo.enabledExtensionCount = Extensions.size();
         createInfo.ppEnabledExtensionNames = Extensions.data();
 
@@ -97,17 +99,33 @@ namespace CrystalEye
 			//create debug callback messenger
 			VK_CHECK(VkCreateDebugUtilsMessengerExt(Instance, &MessengerCreateInfo, nullptr, &DebugMessenger));
     	}
-    	
-    	//Device.Initialize(Instance);
+		SDL_Vulkan_CreateSurface(Window, Instance, &Surface);
+
+    	//init device
+    	cDevice.Initialize(Instance, Surface, Window);
+
+    	//init vma allocator
+		VmaAllocatorCreateInfo allocatorInfo = {};
+		allocatorInfo.physicalDevice = cDevice.vPhysicalDevice;
+		allocatorInfo.device = cDevice.vDevice;
+		allocatorInfo.instance = Instance;
+		vmaCreateAllocator(&allocatorInfo, &AllocatorVMA);
+
     }
 
     void CEEngine::Destroy()
     {
+    	vmaDestroyAllocator(AllocatorVMA);
+    	
+    	cDevice.Destroy();
+    	
     	if (bEnableValidationLayers)
     	{
     		VkDestroyDebugUtilsMessengerExt(Instance, DebugMessenger, nullptr);
     	}
 		 
+        vkDestroySurfaceKHR(Instance, Surface, nullptr);
+
     	vkDestroyInstance(Instance, nullptr);
     	
 		SDL_DestroyWindow(Window);

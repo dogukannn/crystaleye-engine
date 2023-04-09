@@ -5,6 +5,9 @@
 #include <vector>
 
 //CrystalEye
+#include <vk_mem_alloc.h>
+
+#include "Include/CESwapchain.h"
 #include "Include/CEDevice.h"
 #include "CEVulkanCommon.h"
 
@@ -15,8 +18,9 @@ namespace CrystalEye
 {
     struct StartConfig
     {
-        uint32_t WindowHeight; 
         uint32_t WindowWidth; 
+        uint32_t WindowHeight;
+        const char* ApplicationName;
     };
 
     class CEEngine
@@ -28,12 +32,20 @@ namespace CrystalEye
         void Destroy();
         
     private:
+        //Crystal Eye Classes
+        CrystalEye::CEDevice cDevice;
+
+        //SDL Classes
         SDL_Window* Window{ nullptr };
+
+        //Vulkan Classes
         VkExtent2D WindowExtent{ 1280 , 720 };
         VkInstance Instance;
         VkDebugUtilsMessengerEXT DebugMessenger;
-        CEDevice Device;
-        
+        VkSurfaceKHR Surface;
+
+        //VMA Classes
+        VmaAllocator AllocatorVMA;
     };
     
 }
