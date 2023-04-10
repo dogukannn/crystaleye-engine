@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CEVulkanCommon.h"
+#include "CEImage.h"
 
 class SDL_Window;
 
@@ -24,11 +25,16 @@ namespace CrystalEye
             VkSurfaceKHR surface);
         
         void Destroy(VkDevice device);
+        VkSwapchainKHR vSwapchain;
+        std::vector<VkImage> vSwapchainImages;
+        std::vector<CEImageView> cSwapchainImageViews;
+        VkFormat vSwapchainImageFormat;
+        VkExtent2D vSwapchainExtent;
         
+    protected:
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         VkExtent2D ChooseSwapExtent(SDL_Window* window, const VkSurfaceCapabilitiesKHR& capabilities);
-        VkSwapchainKHR Swapchain;
     private:
     };
     

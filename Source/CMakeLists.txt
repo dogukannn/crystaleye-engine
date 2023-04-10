@@ -8,7 +8,9 @@ add_executable(CrystalEyeEngine
 	Include/VulkanExtensionFunctions.h
 	Include/CEVulkanCommon.h
 	Include/CESwapchain.h
-	CESwapchain.cpp)
+	CESwapchain.cpp
+	Include/CEImage.h
+	CEImage.cpp)
 
 set_property(TARGET CrystalEyeEngine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:CrystalEyeEngine>")
 

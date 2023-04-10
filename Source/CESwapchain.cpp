@@ -14,7 +14,8 @@ namespace CrystalEye
 
         VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(details.formats);
         VkPresentModeKHR presentMode = ChooseSwapPresentMode(details.presentModes);
-        VkExtent2D extent = ChooseSwapExtent(window, details.capabilities);
+        vSwapchainExtent = ChooseSwapExtent(window, details.capabilities);
+        vSwapchainImageFormat = surfaceFormat.format;
         
         uint32_t imageCount = std::min(details.capabilities.maxImageCount, details.capabilities.minImageCount + 1);
 
@@ -25,7 +26,7 @@ namespace CrystalEye
         createInfo.minImageCount = imageCount;
         createInfo.imageFormat = surfaceFormat.format;
         createInfo.imageColorSpace = surfaceFormat.colorSpace;
-        createInfo.imageExtent = extent;
+        createInfo.imageExtent = vSwapchainExtent;
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -46,12 +47,27 @@ namespace CrystalEye
         createInfo.presentMode = presentMode;
         createInfo.clipped = VK_TRUE;
         createInfo.oldSwapchain = VK_NULL_HANDLE;
-        VK_CHECK(vkCreateSwapchainKHR(device, &createInfo, nullptr, &Swapchain));
+        VK_CHECK(vkCreateSwapchainKHR(device, &createInfo, nullptr, &vSwapchain));
+
+        vkGetSwapchainImagesKHR(device, vSwapchain, &imageCount, nullptr);
+        vSwapchainImages.resize(imageCount);
+        vkGetSwapchainImagesKHR(device, vSwapchain, &imageCount, vSwapchainImages.data());
+
+        for(auto image : vSwapchainImages)
+        {
+            CEImageView imageView;
+            imageView.Initialize(device, image, vSwapchainImageFormat);
+            cSwapchainImageViews.push_back(imageView);
+        }
     }
 
     void CESwapchain::Destroy(VkDevice device)
     {
-        vkDestroySwapchainKHR(device, Swapchain, nullptr);
+        for(auto imageView : cSwapchainImageViews)
+        {
+            imageView.Destroy(device);
+        }
+        vkDestroySwapchainKHR(device, vSwapchain, nullptr);
     }
 
     VkSurfaceFormatKHR CESwapchain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
