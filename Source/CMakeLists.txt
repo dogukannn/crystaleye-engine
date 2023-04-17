@@ -10,7 +10,15 @@ add_executable(CrystalEyeEngine
 	Include/CESwapchain.h
 	CESwapchain.cpp
 	Include/CEImage.h
-	CEImage.cpp)
+	CEImage.cpp
+	Include/CEPipeline.h
+	CEPipeline.cpp
+	Include/CERenderPass.h
+	CERenderPass.cpp
+	Include/CEFrameBuffer.h
+	CEFrameBuffer.cpp
+	Include/CECommand.h
+	CECommand.cpp)
 
 set_property(TARGET CrystalEyeEngine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:CrystalEyeEngine>")
 
