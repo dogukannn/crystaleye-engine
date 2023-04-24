@@ -6,7 +6,7 @@
 #include "Include/CESwapchain.h"
 #include "Include/CEVulkanCommon.h"
 
-static std::vector<char> readFile(const std::string& filename) {
+static std::vector<uint32_t> readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
     if (!file.is_open()) {
@@ -14,9 +14,9 @@ static std::vector<char> readFile(const std::string& filename) {
     }
 
     size_t fileSize = (size_t) file.tellg();
-    std::vector<char> buffer(fileSize);
+	std::vector<uint32_t> buffer(fileSize / sizeof(uint32_t));
     file.seekg(0);
-    file.read(buffer.data(), fileSize);
+    file.read((char*)buffer.data(), fileSize);
     file.close();
     
     return buffer;
@@ -30,11 +30,11 @@ namespace CrystalEye
     {
     }
 
-    void CEPipeline::Initialize(VkDevice device, VkExtent2D extent, VkFormat colorFormat)
+    void CEPipeline::Initialize(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, VkFormat colorFormat)
     {
         vDevice = device;
-        auto vertShaderCode = readFile("../../Shaders/example.vert");
-        auto fragShaderCode = readFile("../../Shaders/example.frag");
+        auto vertShaderCode = readFile("../../Shaders/example.vert.spv");
+        auto fragShaderCode = readFile("../../Shaders/example.frag.spv");
 
         VertShaderModule = CreateShaderModule(vertShaderCode);
         FragShaderModule = CreateShaderModule(fragShaderCode);
@@ -158,10 +158,7 @@ namespace CrystalEye
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = vPipelineLayout;
 
-        // init render pass
-        cRenderPass.Initialize(device, colorFormat);
-        
-        pipelineInfo.renderPass = cRenderPass.vRenderPass;
+        pipelineInfo.renderPass = renderPass;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineInfo.basePipelineIndex = -1; // Optional
@@ -171,12 +168,12 @@ namespace CrystalEye
 
     
     
-    VkShaderModule CEPipeline::CreateShaderModule(const std::vector<char>& code)
+    VkShaderModule CEPipeline::CreateShaderModule(const std::vector<uint32_t>& code)
     {
         VkShaderModuleCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = code.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+        createInfo.codeSize = code.size() * sizeof(uint32_t);
+        createInfo.pCode = code.data();
 
         VkShaderModule shaderModule;
         VK_CHECK(vkCreateShaderModule(vDevice, &createInfo, nullptr, &shaderModule));

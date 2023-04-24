@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CEFrameBuffer.h"
 #include "CEVulkanCommon.h"
 #include "CEImage.h"
 

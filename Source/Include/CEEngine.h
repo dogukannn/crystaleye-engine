@@ -7,6 +7,9 @@
 //CrystalEye
 #include <vk_mem_alloc.h>
 
+#include "CECommand.h"
+#include "CEPipeline.h"
+#include "CERenderPass.h"
 #include "Include/CESwapchain.h"
 #include "Include/CEDevice.h"
 #include "CEVulkanCommon.h"
@@ -28,13 +31,19 @@ namespace CrystalEye
     public:
         CEEngine();
         void Initialize(StartConfig& startConfig);
-
+        void Render();
+        void RenderLoop();
+        void DrawFrame(); 
         void Destroy();
         
     private:
         //Crystal Eye Classes
-        CrystalEye::CEDevice cDevice;
-
+        CEDevice cDevice;
+        CECommandPool cCommandPool;
+        CECommandBuffer* cMainCommandBuffer = nullptr;
+        CERenderPass cMainRenderPass;
+        std::vector<CEFrameBuffer> cSwapchainFrameBuffers;
+        CEPipeline cMainPipeline;
         //SDL Classes
         SDL_Window* Window{ nullptr };
 
@@ -43,6 +52,9 @@ namespace CrystalEye
         VkInstance Instance;
         VkDebugUtilsMessengerEXT DebugMessenger;
         VkSurfaceKHR Surface;
+        VkSemaphore vImageAvailableSemaphore;
+        VkSemaphore vRenderFinishedSemaphore;
+        VkFence vInFlightFence;
 
         //VMA Classes
         VmaAllocator AllocatorVMA;

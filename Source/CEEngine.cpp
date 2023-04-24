@@ -8,6 +8,7 @@
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
+#include "Include/CECommand.h"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -38,7 +39,7 @@ namespace CrystalEye
 		SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
 		
 		Window = SDL_CreateWindow(
-			"Vulkan Engine",
+			startConfig.ApplicationName,
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
 			WindowExtent.width,
@@ -111,10 +112,119 @@ namespace CrystalEye
 		allocatorInfo.instance = Instance;
 		vmaCreateAllocator(&allocatorInfo, &AllocatorVMA);
 
+    	CreateSemaphore(cDevice.vDevice, vImageAvailableSemaphore);
+    	CreateSemaphore(cDevice.vDevice, vRenderFinishedSemaphore);
+    	CreateFence(cDevice.vDevice, vInFlightFence);
+    	
+		cCommandPool.Initialize(cDevice.vDevice, cDevice.vQueueFamilyIndices);
+    	cMainCommandBuffer = cCommandPool.AllocateCommandBuffer();
+
+    	cMainRenderPass.Initialize(cDevice.vDevice, cDevice.cSwapchain.vSwapchainImageFormat);
+    	for(auto imageView : cDevice.cSwapchain.cSwapchainImageViews)
+    	{
+    		CEFrameBuffer frameBuffer;
+    		std::vector<VkImageView> attachments = {imageView.vImageView};
+    		frameBuffer.Initialize(cDevice.vDevice, cDevice.cSwapchain.vSwapchainExtent, cMainRenderPass.vRenderPass, attachments);
+    		cSwapchainFrameBuffers.push_back(frameBuffer);
+    	}
+
+    	cMainPipeline.Initialize(cDevice.vDevice, cMainRenderPass.vRenderPass, cDevice.cSwapchain.vSwapchainExtent, cDevice.cSwapchain.vSwapchainImageFormat);
+    }
+
+    void CEEngine::Render()
+    {
+		//prepare meshes etc.
+    	
+    	RenderLoop();
+    }
+
+    void CEEngine::RenderLoop()
+    {
+		SDL_Event e;
+		bool bQuit = false;
+		//main loop
+		while (!bQuit)
+		{
+			//Handle events on queue
+			while (SDL_PollEvent(&e) != 0)
+			{
+				//close the window when user alt-f4s or clicks the X button			
+				if (e.type == SDL_QUIT) bQuit = true;
+			}
+
+			DrawFrame();
+		}
+    }
+
+    void CEEngine::DrawFrame()
+    {
+    	vkWaitForFences(cDevice.vDevice, 1, &vInFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(cDevice.vDevice, 1, &vInFlightFence);
+
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(cDevice.vDevice, cDevice.cSwapchain.vSwapchain, UINT64_MAX, vImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+    	cMainCommandBuffer->Reset();
+		cMainCommandBuffer->Begin();
+
+    	//begin render pass
+    	cMainRenderPass.Begin(cMainCommandBuffer->vCommandBuffer, cSwapchainFrameBuffers[imageIndex].vFrameBuffer, cDevice.cSwapchain.vSwapchainExtent);
+    	
+		vkCmdBindPipeline(cMainCommandBuffer->vCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, cMainPipeline.vPipeline);
+    	VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(cDevice.cSwapchain.vSwapchainExtent.width);
+        viewport.height = static_cast<float>(cDevice.cSwapchain.vSwapchainExtent.height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(cMainCommandBuffer->vCommandBuffer, 0, 1, &viewport);
+        
+        VkRect2D scissor{};
+        scissor.offset = {0, 0};
+        scissor.extent = cDevice.cSwapchain.vSwapchainExtent;
+        vkCmdSetScissor(cMainCommandBuffer->vCommandBuffer, 0, 1, &scissor);
+
+    	vkCmdDraw(cMainCommandBuffer->vCommandBuffer, 3, 1, 0, 0);
+		cMainRenderPass.End(cMainCommandBuffer->vCommandBuffer);
+    	cMainCommandBuffer->End();
+
+    	std::vector<VkSemaphore> waitSemaphores = {vImageAvailableSemaphore};
+    	std::vector<VkSemaphore> signalSemaphores = {vRenderFinishedSemaphore};
+    	cMainCommandBuffer->Submit(cDevice.vGraphicsQueue, signalSemaphores, waitSemaphores, vInFlightFence);
+
+    	VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        
+        presentInfo.waitSemaphoreCount = signalSemaphores.size();
+        presentInfo.pWaitSemaphores = signalSemaphores.data();
+    	VkSwapchainKHR swapChains[] = {cDevice.cSwapchain.vSwapchain};
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+        presentInfo.pImageIndices = &imageIndex;
+    	presentInfo.pResults = nullptr; // Optional
+
+    	vkQueuePresentKHR(cDevice.vPresentQueue, &presentInfo);
     }
 
     void CEEngine::Destroy()
     {
+    	vkWaitForFences(cDevice.vDevice, 1, &vInFlightFence, VK_TRUE, UINT64_MAX);
+    	
+		vkDestroySemaphore(cDevice.vDevice, vImageAvailableSemaphore, nullptr);
+		vkDestroySemaphore(cDevice.vDevice, vRenderFinishedSemaphore, nullptr);
+    	vkDestroyFence(cDevice.vDevice, vInFlightFence, nullptr);
+
+    	cMainPipeline.Destroy(cDevice.vDevice);
+
+    	for(auto frameBuffer : cSwapchainFrameBuffers)
+    	{
+    		frameBuffer.Destroy(cDevice.vDevice);
+    	}
+    	cMainRenderPass.Destroy(cDevice.vDevice);
+    	
+    	cCommandPool.Destroy(cDevice.vDevice);
+			
     	vmaDestroyAllocator(AllocatorVMA);
     	
     	cDevice.Destroy();

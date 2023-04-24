@@ -12,5 +12,6 @@ int main(int argc, char* argv[])
     config.ApplicationName = "Example Application";
     
     Renderer.Initialize(config);
+    Renderer.Render();
     Renderer.Destroy(); 
 }

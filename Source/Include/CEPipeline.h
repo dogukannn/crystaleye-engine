@@ -11,12 +11,11 @@ namespace CrystalEye
     {
     public:
         CEPipeline();
-        void Initialize(VkDevice device, VkExtent2D extent, VkFormat colorFormat);
-        VkShaderModule CreateShaderModule(const std::vector<char>& code);
+        void Initialize(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, VkFormat colorFormat);
+        VkShaderModule CreateShaderModule(const std::vector<uint32_t>& code);
         void Destroy(VkDevice device);
 
         VkDevice vDevice;
-        CERenderPass cRenderPass;
         VkPipelineLayout vPipelineLayout;
         VkPipeline vPipeline;
         VkShaderModule VertShaderModule; 
