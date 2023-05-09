@@ -4,7 +4,7 @@ import logging
 import os
 
 shader_directory = "Shaders"
-sdl_path = "C:\projects\external\SDL2-2.26.2" 
+sdl_path = "C:\Projects\External\SDL2-2.26.5" 
 
 parser = argparse.ArgumentParser(description = "Generate project files for Crystal Eye Rendering Engine")
 
