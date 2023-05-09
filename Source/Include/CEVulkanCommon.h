@@ -38,19 +38,23 @@ namespace CrystalEye
         }
     };
     
-    static void CreateSemaphore(VkDevice device, VkSemaphore& outSemaphore)
+    static VkSemaphore CreateSemaphore(VkDevice device)
     {
+        VkSemaphore semaphore;
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &outSemaphore));
+        VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore));
+        return semaphore;
     }
     
-    static void CreateFence(VkDevice device, VkFence& outFence)
+    static VkFence CreateFence(VkDevice device)
     {
+        VkFence fence;
         VkFenceCreateInfo fenceInfo{};
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        VK_CHECK(vkCreateFence(device, &fenceInfo, nullptr, &outFence));
+        VK_CHECK(vkCreateFence(device, &fenceInfo, nullptr, &fence));
+        return fence;
     }
 }
 

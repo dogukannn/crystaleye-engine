@@ -14,6 +14,7 @@
 #include "Include/CEDevice.h"
 #include "CEVulkanCommon.h"
 
+const int MAX_FRAMES_IN_FLIGHT = 2;
 //forward declarations for those in namespaces
 struct SDL_Window;
 
@@ -31,6 +32,7 @@ namespace CrystalEye
     public:
         CEEngine();
         void Initialize(StartConfig& startConfig);
+        void PreparePresentObjects();
         void Render();
         void RenderLoop();
         void DrawFrame(); 
@@ -40,7 +42,7 @@ namespace CrystalEye
         //Crystal Eye Classes
         CEDevice cDevice;
         CECommandPool cCommandPool;
-        CECommandBuffer* cMainCommandBuffer = nullptr;
+        std::vector<CECommandBuffer*> cMainCommandBuffers;
         CERenderPass cMainRenderPass;
         std::vector<CEFrameBuffer> cSwapchainFrameBuffers;
         CEPipeline cMainPipeline;
@@ -52,10 +54,12 @@ namespace CrystalEye
         VkInstance Instance;
         VkDebugUtilsMessengerEXT DebugMessenger;
         VkSurfaceKHR Surface;
-        VkSemaphore vImageAvailableSemaphore;
-        VkSemaphore vRenderFinishedSemaphore;
-        VkFence vInFlightFence;
-
+        std::vector<VkSemaphore> vImageAvailableSemaphores;
+        std::vector<VkSemaphore> vRenderFinishedSemaphores;
+        std::vector<VkFence> vInFlightFences;
+        VkViewport vCurrentViewport;
+        VkRect2D vCurrentScissor;
+        VkPresentInfoKHR vPresentInfo;
         //VMA Classes
         VmaAllocator AllocatorVMA;
     };
